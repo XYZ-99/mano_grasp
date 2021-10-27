@@ -81,6 +81,12 @@ class GraspMiner:
             for plan in plans:
                 pose = plan['pose']
                 dofs = plan['dofs']
+                # with open("/home/xuyinzhen/Documents/mano_grasp/debug/debug.txt", "w+") as f:
+                #     f.write(f"pose: {pose}\n")
+                #     f.write(f"dofs: {dofs}\n")
+                #     f.write(f"len(pose): {len(pose)}\n")
+                #     f.write(f"len(dofs): {len(dofs)}\n")
+                pose[1] = 0
 
                 for args in variants:
                     grasp = scene.grasp(pose, dofs, object_name, **args)

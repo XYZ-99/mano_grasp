@@ -43,6 +43,7 @@ class GraspitScene:
         Returns:
             list -- list of planned grasps
         """
+        # _graspit: graspit_process.py: 87: GraspitCommander
         result = self._graspit.planGrasps(max_steps=max_steps)
         return [grasp_from_msg(g) for g in result.grasps]
 
