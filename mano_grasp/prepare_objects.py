@@ -135,7 +135,7 @@ def main(args):
             use_response = ''
             while use_response not in ['y', 'n']:
                 if sys.version_info < (3, 0, 0):
-                use_response = raw_input('Do you want to use this object list for conversion (y/n): ')
+                    use_response = raw_input('Do you want to use this object list for conversion (y/n): ')
                 else:
                     use_response = input('Do you want to use this object list for conversion (y/n): ')
                 if use_response == 'n':
