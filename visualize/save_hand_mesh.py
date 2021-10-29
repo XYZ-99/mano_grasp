@@ -44,7 +44,7 @@ def main():
 
     # load glass pose in json
     # json_names = glob.glob( grasps_meta + '/*json') # eyeglasses_0002_0_scale_200.json
-    json_names = glob.glob( grasps_meta + f'/{args.category}/*json')
+    json_names = glob.glob( grasps_meta + f'/*json')
     json_names.sort()
     print('load grasps from %s'%(pjoin(grasps_meta, args.category)))
     print('find %d grasps file.' % (len(json_names)))
@@ -52,7 +52,7 @@ def main():
         name_attrs = json_name.split('.js')[0].split('/')[-1].split('_')
         if len(name_attrs) == 4: #articulated obj
             part = name_attrs[1]
-        instance = name_attrs[0]
+        instance = "_".join(name_attrs[:-2]) + ".obj"
         scale    = name_attrs[-1]
         save_dir = pjoin("debug", args.category, 'scale'+scale, instance)
         viz_dir  = pjoin("debug", args.category, 'scale'+scale, instance)
@@ -64,7 +64,7 @@ def main():
             hand_attrs = json.load(json_file)
 
         if args.viz:
-            objname = f'{whole_obj}/{args.category}/{instance}.obj' # TODO
+            objname = instance
             obj= fast_load_obj(open(objname, 'rb'))[0] # why it is [0]
             obj_verts = obj['vertices']
             obj_faces = obj['faces']

@@ -14,7 +14,7 @@ import glob
 import matplotlib.pyplot as plt
 plt.ioff()
 
-from common.vis_utils import plot_arrows, plot_arrows_list, plot_arrows_list_threshold, plot3d_pts, plot_lines, plot_hand_w_object
+from common.vis_utils import plot3d_pts
 
 
 def parse_calibration(filename):
