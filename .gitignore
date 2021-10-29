@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# logs
+mano_grasp/logfile-qhull
+mano_grasp/.temp/
+models/Bottle/
+output_grasps/
+mano_grasp/logfile

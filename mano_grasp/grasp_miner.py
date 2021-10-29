@@ -60,7 +60,7 @@ class GraspMiner:
             collisions = json.load(open(collision_path, 'r'))
         if not collisions:
             collisions = [None]
-        for robot_name, collision in itertools.izip(itertools.cycle(self._robot_names), collisions):
+        for robot_name, collision in zip(itertools.cycle(self._robot_names), collisions):
             # load hand and body and optionally collision object
             gripper = None
             if (collision is not None) and 'gripper' in collision.keys():

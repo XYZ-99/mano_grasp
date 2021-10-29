@@ -81,7 +81,7 @@ class GraspitProcess:
         GraspitCommander.GRASPIT_NODE_NAME = '/' + self._node_name + '/'
         try:
             rospy.wait_for_service('/' + self._node_name + '/clearWorld', timeout=15.0)
-        except ROSException, e:
+        except ROSException as e:
             retcode = self._proc.poll()
             raise Exception('Cannot connect to a graspit node, process retcode: ', retcode)
         self._commander = GraspitCommander
