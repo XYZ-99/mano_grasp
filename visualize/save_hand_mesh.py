@@ -25,29 +25,18 @@ def main():
     parser.add_argument('-v', '--viz', action='store_true', help='whether to visualize')
     parser.add_argument('-s', '--save', action='store_false', help='whether to save')
     args = parser.parse_args()
-
-    # infos           = global_info()
-    # my_dir          = infos.code_path
-    # dset_info       = infos.datasets[args.category]
-    # num_parts       = dset_info.num_parts
-    # num_ins         = dset_info.num_object
-    # name_dset       = dset_info.dataset_name
-    # grasps_meta     = infos.grasp_path
-    # mano_path       = infos.mano_path
-    # hand_mesh       = infos.hand_path
-    # viz_path        = infos.viz_path
+    
     mano_path = "/home/xuyinzhen/Documents/manopth/mano/models"
     grasps_meta = "/home/xuyinzhen/Documents/mano_grasp/debug"
 
     mano_layer_right = ManoLayer(
             mano_root=mano_path , side='right', use_pca=False, ncomps=45, flat_hand_mean=True)
 
-    # load glass pose in json
-    # json_names = glob.glob( grasps_meta + '/*json') # eyeglasses_0002_0_scale_200.json
     json_names = glob.glob( grasps_meta + f'/*json')
     json_names.sort()
     print('load grasps from %s'%(pjoin(grasps_meta, args.category)))
     print('find %d grasps file.' % (len(json_names)))
+    
     for json_name in json_names:
         name_attrs = json_name.split('.js')[0].split('/')[-1].split('_')
         if len(name_attrs) == 4: #articulated obj
