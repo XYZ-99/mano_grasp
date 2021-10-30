@@ -1,13 +1,11 @@
 """
-python ./data_generation/record_data.py --model-path XXX --grasps-num 10 --output-dir XXX
-python ./data_generation/record_data.py --models-dir XXX --grasps-num 10 --output-dir XXX
+python ./data_generation/record_data.py --model XXX --grasps-num 10 --output-dir XXX
+python ./data_generation/record_data.py --models-file XXX --grasps-num 10 --output-dir XXX
 """
 
 import argparse
 import os
 import os.path as osp
-import glob
-from os.path import join as pjoin
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
@@ -37,10 +35,10 @@ def modify_plan(plan, modifying_identifier):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-path", type=str,
+    parser.add_argument("--model", type=str,
                         help="Find grasps for only one model.")
-    parser.add_argument("--models-dir", type=str,
-                        help="Find grasps for all obj models under $models_dir.")
+    parser.add_argument("--models-file", type=str,
+                        help="Find grasps for all obj models in $models_file.")
     parser.add_argument("--output-dir", type=str,
                         help="The directory to store the json results.")
     parser.add_argument("--grasp-num", type=int,
@@ -81,25 +79,20 @@ def ensure_dir_exists(dir):
     
 def main():
     args = parse_args()
-    model_path = args.model_path
-    models_dir = args.models_dir
+    model = args.model
+    models_file = args.models_file
     output_dir = args.output_dir
     grasp_num = args.grasp_num
     modifing_id_mode = args.modifing_id_mode
     
     """ Object list """
-    if model_path is not None:
-        model_paths = [model_path]
-    elif models_dir is not None:
-        model_filewholenames = glob.glob(pjoin(models_dir, "*.obj"))
-        model_paths = list(
-            map(
-                lambda file: pjoin(models_dir, file),
-                model_filewholenames
-            )
-        )
+    if model is not None:
+        models = [model]
+    elif models_file is not None:
+        with open(models_file) as f:
+            models = f.read().splitlines()
     else:
-        raise ValueError(f"Either models_dir or model_path should be given.")
+        raise ValueError(f"Either models or model_file should be given.")
     
     process = GraspitProcess(
         graspit_dir=args.graspit_dir,
@@ -123,15 +116,15 @@ def main():
     )
     
     if modifing_id_mode == "category":
-        # e.g., /home/xuyinzhen/Documents/mano_grasp/models/Bottle/bottle_blue_google_norm.obj
-        category = osp.basename(model_paths[0]).split("_")[0]
+        # e.g., bottle_blue_google_norm_scale_1000
+        category = models[0].split("_")[0]
         modifing_identifier = category
     elif modifing_id_mode == "instance":
         """
         Since this case is usually designed for a single outlier,
-        we assume there is only one model in model_paths
+        we assume there is only one model in models
         """
-        modifing_identifier = osp.basename(model_paths[0])
+        modifing_identifier = models[0]
     else:
         raise NotImplementedError(f"modifing_id_mode: {modifing_id_mode} not implemented!")
         
@@ -139,10 +132,10 @@ def main():
     if args.n_jobs > 1:
         from joblib import Parallel, delayed
         grasps = Parallel(n_jobs=args.n_jobs, verbose=50)(delayed(generator)(m,
-                                                                             modifing_identifier) for m in model_paths)
+                                                                             modifing_identifier) for m in models)
     else:
         grasps = [generator(body,
-                            modifing_identifier) for body in model_paths]
+                            modifing_identifier) for body in models]
         
     if args.debug:
         with GraspitProcess(graspit_dir=args.graspit_dir, plugin_dir=args.plugin_dir) as p:
