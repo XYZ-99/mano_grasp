@@ -110,3 +110,4 @@ models/Bottle/
 output_grasps/
 mano_grasp/logfile
 debug/
+debug_*/

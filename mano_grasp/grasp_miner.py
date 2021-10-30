@@ -18,7 +18,8 @@ class GraspMiner:
                  relax_fingers=False,
                  change_speed=False,
                  robot_names=['ManoHand'],
-                 saver=None):
+                 saver=None,
+                 plan_modifier=None):
         """Constructor
         
         Arguments:
@@ -36,11 +37,12 @@ class GraspMiner:
         self._relax_fingers = relax_fingers
         self._robot_names = robot_names
         self._saver = saver
+        self._plan_modifier = plan_modifier
         # we can't change a joints speed ratios on the fly, so use several hand models
         if change_speed:
             self._robot_names += ['ManoHand_v2', 'ManoHand_v3']
 
-    def __call__(self, object_name):
+    def __call__(self, object_name, modifying_identifier=None):
         """Generated grasps for specific object
         
         Arguments:
@@ -79,6 +81,10 @@ class GraspMiner:
 
             grasps = []
             for plan in plans:
+                if self._plan_modifier is not None \
+                and modifying_identifier is not None:
+                    plan = self._plan_modifier(plan, modifying_identifier)
+                    
                 pose = plan['pose']
                 dofs = plan['dofs']
                 # with open("/home/xuyinzhen/Documents/mano_grasp/debug/debug.txt", "w+") as f:
@@ -86,7 +92,6 @@ class GraspMiner:
                 #     f.write(f"dofs: {dofs}\n")
                 #     f.write(f"len(pose): {len(pose)}\n")
                 #     f.write(f"len(dofs): {len(dofs)}\n")
-                pose[1] = 0
 
                 for args in variants:
                     grasp = scene.grasp(pose, dofs, object_name, **args)
