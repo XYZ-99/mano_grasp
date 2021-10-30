@@ -1,3 +1,6 @@
+"""
+python ./visualize/save_hand_mesh.py --grasps-dir XXX
+"""
 import os
 import argparse
 import glob

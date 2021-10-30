@@ -111,3 +111,5 @@ output_grasps/
 mano_grasp/logfile
 debug/
 debug_*/
+logfile-qhull
+logfile
