@@ -27,7 +27,8 @@ def modify_plan(plan, modifying_identifier):
     xyzw = plan["pose"][3:]  # 4
     if modifying_identifier in ["bottle"]:
         translation[1] = 0
-        xyzw = np.array([0, 0, 0, 1])
+        rot = R.from_euler("x", -90, degrees=True)
+        xyzw = rot.as_quat()
     
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw
