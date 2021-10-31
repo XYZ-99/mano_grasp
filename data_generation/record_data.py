@@ -1,6 +1,6 @@
 """
-python ./data_generation/record_data.py --model XXX --grasps-num 10 --output-dir XXX
-python ./data_generation/record_data.py --models-file XXX --grasps-num 10 --output-dir XXX
+python ./data_generation/record_data.py --model XXX --category bottle --grasps-num 10 --output-dir XXX
+python ./data_generation/record_data.py --models-file XXX --category bottle --grasps-num 10 --output-dir XXX
 """
 
 import argparse
@@ -65,6 +65,8 @@ def parse_args():
     parser.add_argument("-mim", "--modifing-id-mode", type=str, default="category",
                         help="""[category|instance]. 
                         If instance modifier is not implemented, it will fallback to category.""")
+    parser.add_argument("--category", type=str,
+                        help="Specify the category if mim is category.")
     
     """ For graspit """
     parser.add_argument('-n', '--n_jobs', type=int, default=1)
@@ -103,6 +105,7 @@ def main():
     output_dir = args.output_dir
     grasp_num = args.grasp_num
     modifing_id_mode = args.modifing_id_mode
+    args_category = args.category
     
     """ Object list """
     if model is not None:
@@ -136,8 +139,8 @@ def main():
     
     if modifing_id_mode == "category":
         # e.g., bottle_blue_google_norm_scale_1000
-        category = models[0].split("_")[0]
-        modifing_identifier = category
+        # category = models[0].split("_")[0]
+        modifing_identifier = args_category
     elif modifing_id_mode == "instance":
         """
         Since this case is usually designed for a single outlier,
