@@ -70,9 +70,20 @@ def modify_plan(plan, modifying_identifier):
         xyzw = rot.as_quat()
     elif modifying_identifier in ["car"]:
         # the unit is meter
-        translation[1] = (rng.random() / 10)  # [0, 0.1) m height
+        translation[1] = (rng.random() / 10 * 1.5)  # [0, 0.15) m height
+        translation[0] /= 2
+        translation[2] /= 2
         
-        random_angle = rng.random() * 2 * np.pi  # [0, 2π)
+        if translation[2] > 0.02:
+            random_angle = - rng.random() * np.pi  # [-π, 0)
+        elif translation[2] < -0.02:
+            random_angle = rng.random() * np.pi  # [0, π)
+        else:
+            random_angle = rng.random() * np.pi / 3 - (np.pi / 6)  # [-π/6, π/6)
+            if rng.integers(0, 2) == 1:
+                random_angle += np.pi
+
+        # random_angle = rng.random() * 2 * np.pi  # [0, 2π)
         rot0 = R.from_euler("y", random_angle, degrees=False)
         
         rot = rot0
