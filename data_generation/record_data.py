@@ -7,6 +7,7 @@ import argparse
 import os
 import os.path as osp
 import numpy as np
+from numpy import random
 from scipy.spatial.transform import Rotation as R
 
 import time
@@ -67,6 +68,15 @@ def modify_plan(plan, modifying_identifier):
         
         rot = rot2 * rot1 * rot0
         xyzw = rot.as_quat()
+    elif modifying_identifier in ["car"]:
+        # the unit is meter
+        translation[1] = (rng.random() / 10)  # [0, 0.1) m height
+        
+        random_angle = rng.random() * 2 * np.pi  # [0, 2π)
+        rot0 = R.from_euler("y", random_angle, degrees=False)
+        
+        rot = rot0
+        xyzw = rot.as_quat()
     
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw
@@ -85,7 +95,7 @@ def parse_args():
     parser.add_argument("-mim", "--modifing-id-mode", type=str, default="category",
                         help="""[category|instance]. 
                         If instance modifier is not implemented, it will fallback to category.""")
-    parser.add_argument("--category", type=str, default="bottle",
+    parser.add_argument("--category", type=str, default="car",
                         help="Specify the category if mim is category.")
     
     """ For graspit """
