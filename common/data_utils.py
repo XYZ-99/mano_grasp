@@ -3,11 +3,11 @@ import random
 import os
 import time
 import pickle
-import yaml
 import os.path
 import struct
 import trimesh
 from numpy.linalg import inv
+import transforms3d as tf
 
 import glob
 
@@ -15,6 +15,18 @@ import matplotlib.pyplot as plt
 plt.ioff()
 
 from common.vis_utils import plot3d_pts
+
+
+def mat_from_rvec(rvec):
+    angle = np.linalg.norm(rvec)
+    axis = np.array(rvec).reshape(3) / angle if angle != 0 else [0, 0, 1]
+    mat = tf.axangles.axangle2mat(axis, angle)
+    return np.matrix(mat)
+
+def rvec_from_mat(mat):
+    axis, angle = tf.axangles.mat2axangle(mat, unit_thresh=1e-03)
+    rvec = axis * angle
+    return rvec
 
 
 def parse_calibration(filename):

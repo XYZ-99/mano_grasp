@@ -48,7 +48,7 @@ def main():
         name_attrs = json_name.split('.js')[0].split('/')[-1].split('_')
         if len(name_attrs) == 4: #articulated obj
             part = name_attrs[1]
-        instance = "_".join(name_attrs[:-2]) + ".obj"
+        instance = "_".join(name_attrs[:-2])
         scale: str = name_attrs[-1]
         save_dir = pjoin("debug", category, 'scale'+scale, instance)
         viz_dir  = pjoin("debug", category, 'scale'+scale, instance)
@@ -61,7 +61,7 @@ def main():
             hand_attrs = json.load(json_file)
 
         if args.viz:
-            objname = instance
+            objname = instance + ".obj"
             obj= fast_load_obj(open(objname, 'rb'))[0] # why it is [0]
             obj_verts = obj['vertices']
             obj_faces = obj['faces']

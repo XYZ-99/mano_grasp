@@ -7,7 +7,6 @@ import argparse
 import os
 import os.path as osp
 import numpy as np
-from numpy import random
 from scipy.spatial.transform import Rotation as R
 
 import time
