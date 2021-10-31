@@ -113,3 +113,5 @@ debug/
 debug_*/
 logfile-qhull
 logfile
+models/Bottle(first_trial)/
+models/bottle/
