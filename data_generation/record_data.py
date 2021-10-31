@@ -47,6 +47,26 @@ def modify_plan(plan, modifying_identifier):
         
         rot = rot2 * rot1 * rot0
         xyzw = rot.as_quat()
+    elif modifying_identifier in ["00256_scale_1000"]:  # Too fat a bottle
+        # the unit is meter
+        translation[1] = (rng.random() / 10) - 0.05  # A random shift in ±5cm
+        rot0 = R.from_euler("x", -90, degrees=True)  # align with the y-axis
+        
+        """ compute the rotation along the y-axis """
+        xz_coord = np.array([translation[0], 0, translation[2]])
+        x_pos = np.array([1, 0, 0])
+        cos_theta = np.dot(xz_coord, x_pos) / np.linalg.norm(xz_coord)
+        if translation[2] <= 0:
+            theta = np.arccos(cos_theta)
+        else:
+            theta = -np.arccos(cos_theta)
+        rot1 = R.from_euler("y", theta, degrees=False)
+        
+        """ Fine tuning """
+        rot2 = R.from_euler("y", -75, degrees=True)
+        
+        rot = rot2 * rot1 * rot0
+        xyzw = rot.as_quat()
     
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw
