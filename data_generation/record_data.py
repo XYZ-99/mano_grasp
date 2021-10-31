@@ -42,7 +42,10 @@ def modify_plan(plan, modifying_identifier):
             theta = -np.arccos(cos_theta)
         rot1 = R.from_euler("y", theta, degrees=False)
         
-        rot = rot1 * rot0
+        """ Fine tuning """
+        rot2 = R.from_euler("y", -90, degrees=True)
+        
+        rot = rot2 * rot1 * rot0
         xyzw = rot.as_quat()
     
     plan["pose"][:3] = translation
