@@ -1,6 +1,6 @@
 """
-python ./data_generation/record_data.py --model XXX --category bottle --grasps-num 10 --output-dir XXX
-python ./data_generation/record_data.py --models-file XXX --category bottle --grasps-num 10 --output-dir XXX
+python ./data_generation/record_data.py --model XXX --category bottle --grasp-num 10 --output-dir XXX
+python ./data_generation/record_data.py --models-file XXX --category bottle --grasp-num 10 --output-dir XXX
 """
 
 import argparse
@@ -65,7 +65,7 @@ def parse_args():
     parser.add_argument("-mim", "--modifing-id-mode", type=str, default="category",
                         help="""[category|instance]. 
                         If instance modifier is not implemented, it will fallback to category.""")
-    parser.add_argument("--category", type=str,
+    parser.add_argument("--category", type=str, default="bottle",
                         help="Specify the category if mim is category.")
     
     """ For graspit """
