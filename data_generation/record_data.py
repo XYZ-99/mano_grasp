@@ -70,7 +70,7 @@ def modify_plan(plan, modifying_identifier):
         xyzw = rot.as_quat()
     elif modifying_identifier in ["car"]:
         # the unit is meter
-        translation[1] = (rng.random() / 10 * 1.5)  # [0, 0.15) m height
+        translation[1] = (rng.random() * 0.05) + 0.05  # [0, 0.15) m height
         translation[0] /= 2
         translation[2] /= 2
         
