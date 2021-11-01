@@ -42,7 +42,10 @@ def main():
             json_data = json.load(f)
             
         model_id = json_data["model_id"]
-        handle_path = pjoin(dir_path, "objs", "original-1.obj")
+        handle_dir_path = pjoin(dir_path, "objs")
+        obj_wholenames = os.listdir(handle_dir_path)
+        obj_wholenames.sort()
+        handle_path = pjoin(handle_dir_path, obj_wholenames[0])
         mapping_from_model_id_to_handle_path[model_id] = handle_path
         model_cnt[model_id] = model_cnt.get(model_id, 0) + 1
 
