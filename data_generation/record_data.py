@@ -111,6 +111,18 @@ def modify_plan(plan, modifying_identifier):
         
         if translation[0] < 0.05:
             translation = np.array([0.20, 0, 0])
+        else:
+            upright_rot = R.from_euler("x", -90, degrees=True)
+            hand_rot = R.from_quat(xyzw)
+            
+            upright_rot_mat = upright_rot.as_matrix()
+            hand_rot_mat = hand_rot.as_matrix()
+            
+            diff_r_mat = upright_rot_mat @ hand_rot_mat.T
+            trace_r = np.einsum("ii", diff_r_mat)
+            theta = np.arccos((trace_r - 1) / 2)
+            if theta > np.pi / 5:
+                translation = np.array([0.20, 0, 0])
         
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw
