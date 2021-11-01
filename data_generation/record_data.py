@@ -89,25 +89,28 @@ def modify_plan(plan, modifying_identifier):
         xyzw = rot.as_quat()
     elif modifying_identifier in ["mug"]:
         # the unit is meter
-        translation[0] = (rng.random() * 0.15) + 0.05  # [0.05, 0.20)
-        translation[1] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
-        translation[2] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
+        # translation[0] = (rng.random() * 0.15) + 0.05  # [0.05, 0.20)
+        # translation[1] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
+        # translation[2] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
         
-        r = np.linalg.norm(translation)
-        beta = np.arcsin(translation[1] / r)
-        alpha = np.arcsin(translation[2] / (r * np.cos(beta)))
+        # r = np.linalg.norm(translation)
+        # beta = np.arcsin(translation[1] / r)
+        # alpha = np.arcsin(translation[2] / (r * np.cos(beta)))
         
-        rot0 = R.from_euler("x", -90, degrees=True)
-        rot1 = R.from_euler("z", beta, degrees=False)
-        rot2 = R.from_euler("y", - alpha, degrees=False)
+        # rot0 = R.from_euler("x", -90, degrees=True)
+        # rot1 = R.from_euler("z", beta, degrees=False)
+        # rot2 = R.from_euler("y", - alpha, degrees=False)
         # y_angle = rng.random() * 30
         # rot0 = R.from_euler("y", - (75 + y_angle), degrees=True)  # [75deg, 105deg)
         # z_angle = rng.random() * 5
         # rot1 = R.from_euler("z", - (87.5 + z_angle), degrees=True)  # [87.5deg, 92.5deg)
         # x_angle = rng.random() * 10 - 5  # [-5deg, 5deg)  # This one should be imposed around the 
         
-        rot = rot2 * rot1 * rot0
-        xyzw = rot.as_quat()
+        # rot = rot2 * rot1 * rot0
+        # xyzw = rot.as_quat()
+        
+        if translation[0] < 0.05:
+            translation = np.array([0.20, 0, 0])
         
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw

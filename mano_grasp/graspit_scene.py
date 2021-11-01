@@ -78,7 +78,7 @@ class GraspitScene:
             graspit.autoGrasp()
             # compute quality
             quality = graspit.computeQuality()
-            if quality.result == 0 and quality.epsilon > -2:
+            if quality.result == 0 and quality.epsilon > -1:
                 response = graspit.getRobot()
                 robot = response.robot
                 grasp = grasp_from_robot_state(robot, quality, body, kinematics)
