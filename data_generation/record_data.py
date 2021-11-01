@@ -89,13 +89,13 @@ def modify_plan(plan, modifying_identifier):
         xyzw = rot.as_quat()
     elif modifying_identifier in ["mug"]:
         # the unit is meter
-        translation[0] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
+        translation[0] = (rng.random() * 0.15) + 0.05  # [0.05, 0.20)
         translation[1] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
-        translation[2] = (rng.random() * 0.15) + 0.05  # [0.05, 0.20)
+        translation[2] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
         
         r = np.linalg.norm(translation)
         beta = np.arcsin(translation[1] / r)
-        alpha = np.arccos(translation[0] / (r * np.cos(beta)))
+        alpha = np.arcsin(translation[2] / (r * np.cos(beta)))
         
         rot0 = R.from_euler("x", -90, degrees=True)
         rot1 = R.from_euler("z", beta, degrees=False)
