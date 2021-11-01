@@ -69,7 +69,7 @@ def modify_plan(plan, modifying_identifier):
         xyzw = rot.as_quat()
     elif modifying_identifier in ["car"]:
         # the unit is meter
-        translation[1] = (rng.random() * 0.05) + 0.05  # [0, 0.15) m height
+        translation[1] = (rng.random() * 0.05) + 0.05  # [0.05, 0.10) m height
         translation[0] /= 2
         translation[2] /= 2
         
@@ -87,7 +87,28 @@ def modify_plan(plan, modifying_identifier):
         
         rot = rot0
         xyzw = rot.as_quat()
-    
+    elif modifying_identifier in ["mug"]:
+        # the unit is meter
+        translation[0] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
+        translation[1] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
+        translation[2] = (rng.random() * 0.15) + 0.05  # [0.05, 0.20)
+        
+        r = np.linalg.norm(translation)
+        beta = np.arcsin(translation[1] / r)
+        alpha = np.arccos(translation[0] / (r * np.cos(beta)))
+        
+        rot0 = R.from_euler("x", -90, degrees=True)
+        rot1 = R.from_euler("z", beta, degrees=False)
+        rot2 = R.from_euler("y", - alpha, degrees=False)
+        # y_angle = rng.random() * 30
+        # rot0 = R.from_euler("y", - (75 + y_angle), degrees=True)  # [75deg, 105deg)
+        # z_angle = rng.random() * 5
+        # rot1 = R.from_euler("z", - (87.5 + z_angle), degrees=True)  # [87.5deg, 92.5deg)
+        # x_angle = rng.random() * 10 - 5  # [-5deg, 5deg)  # This one should be imposed around the 
+        
+        rot = rot2 * rot1 * rot0
+        xyzw = rot.as_quat()
+        
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw
     return plan
@@ -105,7 +126,7 @@ def parse_args():
     parser.add_argument("-mim", "--modifing-id-mode", type=str, default="category",
                         help="""[category|instance]. 
                         If instance modifier is not implemented, it will fallback to category.""")
-    parser.add_argument("--category", type=str, default="car",
+    parser.add_argument("--category", type=str, default="mug",
                         help="Specify the category if mim is category.")
     
     """ For graspit """

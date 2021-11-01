@@ -24,7 +24,7 @@ MANO_PATH = "/home/xuyinzhen/Documents/manopth/mano/models"
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--category', default='bottle', help='object category for benchmarking')
+    parser.add_argument('-c', '--category', default='mug', help='object category for benchmarking')
     parser.add_argument('-v', '--viz', action='store_true', help='whether to visualize')
     parser.add_argument('-s', '--save', action='store_false', help='whether to save')
     parser.add_argument('--grasps-dir', type=str, default="/home/xuyinzhen/Documents/mano_grasp/debug")
