@@ -4,6 +4,7 @@ import argparse
 import json
 import trimesh
 import os.path as osp
+from scipy.spatial.transform import Rotation as R
 
 
 def parse_args():
@@ -57,8 +58,15 @@ def main():
         if handle_path is None:
             continue
         
-        """ Copy to destination """
+        """ ------ Copy to destination ------ """
         mesh = trimesh.load(handle_path, force="mesh")
+        """ --- Align with the original mug --- """
+        y_rot = R.from_euler("y", 90, degrees=True)
+        mesh.vertices = mesh.vertices @ y_rot.as_matrix().T  # [N, 3] @ [3, 3] -> [N, 3]
+        align_scale = 0.35
+        mesh.vertices *= align_scale
+        mesh.vertices -= [0, 0.01, 0]
+        """ --- Regular transforms --- """
         mesh.vertices = mesh.vertices * scale
         mesh_txt = trimesh.exchange.obj.export_obj(mesh, 
                                                    include_normals=False, 
