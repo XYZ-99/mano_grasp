@@ -3,7 +3,14 @@ import json
 import numpy as np
 import os
 
-from .math_utils import *
+import sys
+import os
+from os.path import join as pjoin
+base_path = os.path.dirname(__file__)
+sys.path.insert(0, base_path)
+sys.path.insert(0, pjoin(base_path, ".."))
+
+from math_utils import *
 
 CHAIN_NAME = collections.OrderedDict([('chain0', 'index'), ('chain1', 'mid'), ('chain2', 'pinky'),
                                       ('chain3', 'ring'), ('chain4', 'thumb')])

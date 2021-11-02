@@ -23,8 +23,13 @@ def modify_plan(plan, modifying_identifier):
     """
     :param modifying_identifier: may simply be the category, or the specific obj model name
     """
+    def d2r(degree):
+        """ degree to radian """
+        return degree / 180 * np.pi
+    
     translation = plan["pose"][:3]  # 3
     xyzw = plan["pose"][3:]  # 4
+    dofs = plan["dofs"]  # 13
     
     rng = np.random.default_rng()
     if modifying_identifier in ["bottle"]:
@@ -109,6 +114,13 @@ def modify_plan(plan, modifying_identifier):
         # rot = rot2 * rot1 * rot0
         # xyzw = rot.as_quat()
         
+        dofs = [ d2r(-15), d2r(65), 0,
+             0, d2r(85), 0,
+             d2r(25), d2r(85), 0,
+             d2r(10), d2r(75), 0,
+             d2r(60), 0, 0, 0 ]
+        dofs = np.array(dofs)
+        
         if translation[0] < 0.05:
             translation = np.array([0.25, 0, 0])
         else:
@@ -125,6 +137,7 @@ def modify_plan(plan, modifying_identifier):
         
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw
+    plan["dofs"] = dofs
     return plan
 
 def parse_args():
