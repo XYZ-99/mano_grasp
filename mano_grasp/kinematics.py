@@ -3,7 +3,7 @@ import json
 import numpy as np
 import os
 
-from math_utils import *
+from .math_utils import *
 
 CHAIN_NAME = collections.OrderedDict([('chain0', 'index'), ('chain1', 'mid'), ('chain2', 'pinky'),
                                       ('chain3', 'ring'), ('chain4', 'thumb')])
