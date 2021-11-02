@@ -110,19 +110,18 @@ def modify_plan(plan, modifying_identifier):
         # xyzw = rot.as_quat()
         
         if translation[0] < 0.05:
-            translation = np.array([0.20, 0, 0])
+            translation = np.array([0.25, 0, 0])
         else:
-            upright_rot = R.from_euler("x", -90, degrees=True)
             hand_rot = R.from_quat(xyzw)
+            hand_frame_z = hand_rot.apply([0, 0, 1])  # Should be pointing above
+            cos_above_angle = np.dot(hand_frame_z, [0, 1, 0]) / np.linalg.norm(hand_frame_z)
+            above_angle = np.arccos(cos_above_angle)  # < π / 2
             
-            upright_rot_mat = upright_rot.as_matrix()
-            hand_rot_mat = hand_rot.as_matrix()
-            
-            diff_r_mat = upright_rot_mat @ hand_rot_mat.T
-            trace_r = np.einsum("ii", diff_r_mat)
-            theta = np.arccos((trace_r - 1) / 2)
-            if theta > np.pi / 5:
-                translation = np.array([0.20, 0, 0])
+            hand_frame_x = hand_rot.apply([1, 0, 0])  # Should be pointing outward from the mug handle
+            cos_x_angle = np.dot(hand_frame_x, [1, 0, 0]) / np.linalg.norm(hand_frame_x)
+            x_angle = np.arccos(cos_x_angle)  # < π / 2
+            if above_angle >= np.pi / 2 or x_angle >= np.pi / 2:
+                translation = np.array([0.25, 0, 0])
         
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw
