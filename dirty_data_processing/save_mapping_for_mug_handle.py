@@ -2,6 +2,8 @@ import os
 from os.path import join as pjoin
 import argparse
 import json
+import os.path as osp
+import trimesh
 
 
 def check_partnet_mug_path(path):
@@ -9,6 +11,21 @@ def check_partnet_mug_path(path):
         return pjoin(path, "partnet_mug")
     else:
         return path
+    
+def find_which_is_handle(dir_path, obj_list):
+    # handle's com should have the max z
+    max_z = -10
+    max_z_name = None
+    for obj_wholename in obj_list:
+        obj_path = pjoin(dir_path, obj_wholename)
+        mesh = trimesh.load(obj_path)
+        center_mass = mesh.center_mass
+        if center_mass[2] > max_z:
+            max_z = center_mass[2]
+            max_z_name = obj_wholename
+    
+    return max_z_name
+    
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -43,9 +60,14 @@ def main():
             
         model_id = json_data["model_id"]
         handle_dir_path = pjoin(dir_path, "objs")
+        if not osp.exists(handle_dir_path):
+            # some have no objs dir
+            continue
+        
         obj_wholenames = os.listdir(handle_dir_path)
         obj_wholenames.sort()
-        handle_path = pjoin(handle_dir_path, obj_wholenames[0])
+        handle_wholename = find_which_is_handle(handle_dir_path, obj_wholenames)
+        handle_path = pjoin(handle_dir_path, handle_wholename)
         mapping_from_model_id_to_handle_path[model_id] = handle_path
         model_cnt[model_id] = model_cnt.get(model_id, 0) + 1
 
