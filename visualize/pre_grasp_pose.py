@@ -23,10 +23,15 @@ def construct_pose_and_dofs():
     
     pose = [0, 0, 0,
             0, 0, 0, 1]
-    dofs = [ d2r(-15), d2r(65), 0,
-             0, d2r(85), 0,
-             d2r(25), d2r(85), 0,
-             d2r(10), d2r(75), 0,
+    # dofs = [ d2r(-15), d2r(65), 0,
+    #          0, d2r(85), 0,
+    #          d2r(25), d2r(85), 0,
+    #          d2r(10), d2r(75), 0,
+    #          d2r(60), 0, 0, 0 ]
+    dofs = [ d2r(-5), 0, 0,
+             0, 0, 0,
+             d2r(5), 0, 0,
+             d2r(5), 0, 0,
              d2r(60), 0, 0, 0 ]
     return np.array(pose), np.array(dofs)
 

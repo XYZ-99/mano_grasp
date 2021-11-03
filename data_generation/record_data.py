@@ -94,46 +94,46 @@ def modify_plan(plan, modifying_identifier):
         xyzw = rot.as_quat()
     elif modifying_identifier in ["mug"]:
         # the unit is meter
-        # translation[0] = (rng.random() * 0.15) + 0.05  # [0.05, 0.20)
-        # translation[1] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
-        # translation[2] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
+        translation[0] = (rng.random() * 0.15) + 0.05  # [0.05, 0.20)
+        translation[1] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
+        translation[2] = (rng.random() * 0.02) - 0.01  # [-0.01, 0.01)
         
-        # r = np.linalg.norm(translation)
-        # beta = np.arcsin(translation[1] / r)
-        # alpha = np.arcsin(translation[2] / (r * np.cos(beta)))
+        r = np.linalg.norm(translation)
+        beta = np.arcsin(translation[1] / r)
+        alpha = np.arcsin(translation[2] / (r * np.cos(beta)))
         
-        # rot0 = R.from_euler("x", -90, degrees=True)
-        # rot1 = R.from_euler("z", beta, degrees=False)
-        # rot2 = R.from_euler("y", - alpha, degrees=False)
+        rot0 = R.from_euler("x", -90, degrees=True)
+        rot1 = R.from_euler("z", beta, degrees=False)
+        rot2 = R.from_euler("y", - alpha, degrees=False)
         # y_angle = rng.random() * 30
         # rot0 = R.from_euler("y", - (75 + y_angle), degrees=True)  # [75deg, 105deg)
         # z_angle = rng.random() * 5
         # rot1 = R.from_euler("z", - (87.5 + z_angle), degrees=True)  # [87.5deg, 92.5deg)
         # x_angle = rng.random() * 10 - 5  # [-5deg, 5deg)  # This one should be imposed around the 
         
-        # rot = rot2 * rot1 * rot0
-        # xyzw = rot.as_quat()
+        rot = rot2 * rot1 * rot0
+        xyzw = rot.as_quat()
         
-        dofs = [ d2r(-15), d2r(65), 0,
+        dofs = [ d2r(-5), d2r(65), 0,
              0, d2r(85), 0,
-             d2r(25), d2r(85), 0,
-             d2r(10), d2r(75), 0,
+             d2r(5), d2r(85), 0,
+             d2r(5), d2r(75), 0,
              d2r(60), 0, 0, 0 ]
         dofs = np.array(dofs)
         
-        if translation[0] < 0.05:
-            translation = np.array([0.25, 0, 0])
-        else:
-            hand_rot = R.from_quat(xyzw)
-            hand_frame_z = hand_rot.apply([0, 0, 1])  # Should be pointing above
-            cos_above_angle = np.dot(hand_frame_z, [0, 1, 0]) / np.linalg.norm(hand_frame_z)
-            above_angle = np.arccos(cos_above_angle)  # < π / 2
+        # if translation[0] < 0.05:
+        #     translation = np.array([0.25, 0, 0])
+        # else:
+        #     hand_rot = R.from_quat(xyzw)
+        #     hand_frame_z = hand_rot.apply([0, 0, 1])  # Should be pointing above
+        #     cos_above_angle = np.dot(hand_frame_z, [0, 1, 0]) / np.linalg.norm(hand_frame_z)
+        #     above_angle = np.arccos(cos_above_angle)  # < π / 2
             
-            hand_frame_x = hand_rot.apply([1, 0, 0])  # Should be pointing outward from the mug handle
-            cos_x_angle = np.dot(hand_frame_x, [1, 0, 0]) / np.linalg.norm(hand_frame_x)
-            x_angle = np.arccos(cos_x_angle)  # < π / 2
-            if above_angle >= np.pi / 2 or x_angle >= np.pi / 2:
-                translation = np.array([0.25, 0, 0])
+        #     hand_frame_x = hand_rot.apply([1, 0, 0])  # Should be pointing outward from the mug handle
+        #     cos_x_angle = np.dot(hand_frame_x, [1, 0, 0]) / np.linalg.norm(hand_frame_x)
+        #     x_angle = np.arccos(cos_x_angle)  # < π / 2
+        #     if above_angle >= np.pi / 2 or x_angle >= np.pi / 2:
+        #         translation = np.array([0.25, 0, 0])
         
     plan["pose"][:3] = translation
     plan["pose"][3:] = xyzw
