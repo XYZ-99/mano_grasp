@@ -19,7 +19,6 @@ from common.detect_collision_in_graspit import check_collision
 from common.data_utils import mat_from_rvec
 import cv2
 from multiprocessing import Process
-from sapien.sensor import ActiveLightSensor
 
 class global_info(object):
     def __init__(self):
@@ -31,6 +30,7 @@ class global_info(object):
         self.grasp_path = pjoin(self.h2o_data_path, "grasps")
         self.obj_path = pjoin(self.h2o_data_path, "objs")
         self.blender_anno_path = pjoin(self.h2o_data_path, "blender_anno")
+
 
 def normalize(q):
     norm = np.linalg.norm(q)
@@ -58,22 +58,18 @@ def rvec_from_mat(mat):
 class BaseEnv:
     def __init__(self, save_path, sample_num, category='laptop', seq=False):
         engine = sapien.Engine()
-
-        render_config = sapien.KuafuConfig()
-        render_config.use_viewer = False
-        render_config.spp = 32
-        render_config.max_bounces = 8
-        render_config.use_denoiser = True
-        renderer = sapien.KuafuRenderer(render_config)
+        renderer = sapien.VulkanRenderer()
         engine.set_renderer(renderer)
+
         scene = engine.create_scene()
         scene.set_timestep(1 / 100.0)
 
-        scene.set_ambient_light([0.5, 0.5, 0.5])
-        scene.add_directional_light([0, 1, -1], [0.5, 0.5, 0.5], shadow=True)
-        scene.add_point_light([1, 2, 2], [1, 1, 1], shadow=True)
-        scene.add_point_light([1, -2, 2], [1, 1, 1], shadow=True)
-        scene.add_point_light([-1, 0, 1], [1, 1, 1], shadow=True)
+        rscene = scene.get_renderer_scene()
+        rscene.set_ambient_light([0.5, 0.5, 0.5])
+        rscene.add_directional_light([0, 1, -1], [0.5, 0.5, 0.5], shadow=True)
+        rscene.add_point_light([1, 2, 2], [1, 1, 1], shadow=True)
+        rscene.add_point_light([1, -2, 2], [1, 1, 1], shadow=True)
+        rscene.add_point_light([-1, 0, 1], [1, 1, 1], shadow=True)
 
         # camera
         near, far = 0.1, 10
@@ -85,19 +81,20 @@ class BaseEnv:
             pose=sapien.Pose(),  # relative to the mounted actor
             width=width,
             height=height,
+            fovx=np.deg2rad(70.6),
             fovy=np.deg2rad(60),
             near=near,
             far=far,
         )
-        sensor = ActiveLightSensor('sensor', renderer, scene, sensor_type='fakesense_j415')
 
         if category == 'laptop':
             self.total_part = 2
             self.joint_type = 'revolute'
         self.category = category
         self.sample_num = sample_num
-        self.sensor = sensor
+
         self.engine = engine
+        self.rscene = rscene
         self.scene = scene
         self.camera = camera
         self.camera_mount_actor = camera_mount_actor
@@ -106,9 +103,9 @@ class BaseEnv:
         mode = 'seq' if seq else 'single_frame'
         self.img_folder = pjoin(save_path, 'img', category, mode)
         self.preproc_folder = pjoin(save_path, 'preproc', category, mode)
-        self.origin_obj_path_dict = np.load(pjoin(self.obj_mesh_folder, 'partnet_laptop.npy'), allow_pickle=True).item()
         os.makedirs(self.preproc_folder, exist_ok=True)
         os.makedirs(self.img_folder, exist_ok=True)
+
     def add_urdf(self, urdf_path):
         loader = self.scene.create_urdf_loader()
         loader.fix_root_link = True
@@ -233,7 +230,7 @@ class BaseEnv:
 
         if self.seq:
             pose_list = self.get_random_sequence(self.sample_num)
-        blender_data = []
+
         success_sample_num = 0
         for i in range(self.sample_num):
             ii = str(success_sample_num).zfill(3)
@@ -251,7 +248,7 @@ class BaseEnv:
 
             self.model.set_qpos(qpos)
             self.camera_mount_actor.set_pose(sapien.Pose.from_transformation_matrix(pos))
-            self.sensor.set_pose(sapien.Pose.from_transformation_matrix(pos))
+
             #get gt pose
             gt_obj_pose_list = []
             links = self.model.get_links()
@@ -282,15 +279,13 @@ class BaseEnv:
             self.scene.update_render()
             self.camera.take_picture()
 
-            self.sensor.take_picture()
-
             # segmentation
-            full_segmentation = self.camera.get_visual_actor_segmentation()
+            full_segmentation = self.camera.get_actor_segmentation()
             seg_img = self.gt_seg_dict[full_segmentation]
             seg = seg_img.astype(np.int8).reshape(-1)
             # reject heavy occlusion
             reject_flag = False
-            for part in range(self.total_part):
+            for part in range(self.total_part+1):
                 if len(np.where(seg==part)[0]) < 20:
                     reject_flag = True
                     break
@@ -300,24 +295,19 @@ class BaseEnv:
             os.makedirs(img_folder, exist_ok=True)
 
             #rgba
-            rgb = self.sensor.get_rgb()
-            rgb = Image.fromarray((rgb * 255).clip(0, 255).astype("uint8"))
-            rgb_path = pjoin(img_folder, f'{ii}_sensor_rgb.png')
-            rgb.save(rgb_path)
-
             rgba = self.camera.get_float_texture('Color')
-            rgba = Image.fromarray((rgba * 255).clip(0, 255).astype("uint8"))
-            rgba_path = pjoin(img_folder, f'{ii}_rgb.png')
-            rgba.save(rgba_path)
+            rgba = (rgba * 255).clip(0, 255).astype("uint8")
+            rgba = Image.fromarray(rgba)
+            rgb_path = pjoin(img_folder, f'{ii}_rgb.png')
+            rgba.save(rgb_path)
             seg_path = pjoin(img_folder, f'{ii}_seg.png')
             cv2.imwrite(seg_path, seg_img)
             print(f'save rgb img to {rgb_path}')
 
             #point cloud
-            position = self.sensor.get_pointcloud(with_rgb=True)
-            #position = self.camera.get_float_texture('Position')
+            position = self.camera.get_float_texture('Position')
             points_opengl = position[..., :3][position[..., 3] > 0]
-            np.savetxt(pjoin(img_folder, f'{ii}_sim'), position)
+
             # remove bg pc
             seg_fg = np.where(seg != total_part + 1)[0]
             seg = seg[seg_fg]
@@ -375,30 +365,15 @@ class BaseEnv:
                          'hand_num': hand_part*20+hand_num,
                          'sample_num': ii,
                          'urdf_path': urdf_path,
+                         'for_kuafu': {'pos': pos, 'qpos': qpos}
                          }
-            obj_pose_for_blender = []
-            for p in gt_obj_pose_list[:-1]:
-                obj_pose_for_blender.append({
-                    'trans': np.array(p[:3,3]),
-                    'q': rmat_to_q(p[:3,:3])
-                })
-            path_dict_for_blender = {}
-            for p in range(self.total_part):
-                path_dict_for_blender[str(p)] = ['partnet' + i.split('partnet')[-1] for i in self.origin_obj_path_dict[f'{instance}_{p}']]
-            blender_data.append({
-                'hand_mesh_path': pjoin('hands', self.category, 'scale1000', instance,f'{hand_part}_{hand_num}.obj'),
-                'obj_mesh_path': path_dict_for_blender,
-                'hand_pose': {'trans': hand_T, 'q': rmat_to_q(hand_R)},
-                'obj_pose': obj_pose_for_blender,
-                'file_name': '%s_%d_%s' % (instance, hand_part*20+hand_num, ii)
-            })
 
             np.savez_compressed(pjoin(self.preproc_folder, '%s_%d_%s.npz' % (instance, hand_part*20+hand_num, ii)), all_dict=data_dict)
-            success_sample_num += 1
+            success_sample_num+=1
             #each grasp only take 10!
             if success_sample_num == 10:
                 break
-        return blender_data
+        return True
 
 
 def create_obj_hand_urdf(urdf_path, hand_path, save_path, total_part):
@@ -438,18 +413,18 @@ def create_obj_hand_urdf(urdf_path, hand_path, save_path, total_part):
 def proc_work(instance_lst, proc_num, infos, args):
     obj_folder = pjoin(infos.partnet_path, args.category)  # .urdf
     hand_folder = pjoin(infos.hand_path, args.category, f'scale{args.scale}')  # .obj
-    blender_lst = []
-    env = BaseEnv(infos.render_path, args.sample_num, args.category, args.seq)
     for instance in instance_lst:
         urdf_path = pjoin(obj_folder, instance, 'mobility.urdf')
         hand_lst = os.listdir(pjoin(hand_folder, instance))
 
         for hand_file in hand_lst:
+            if '.obj' not in hand_file:
+                continue
             hand_path = pjoin(hand_folder, instance, hand_file)
             new_urdf_save_path = pjoin(obj_folder, instance, hand_file[:-4]+'.urdf')
             print(new_urdf_save_path)
             create_obj_hand_urdf(urdf_path, hand_path, new_urdf_save_path, total_part)
-
+            
             #which part hand touch
             hand_part = int(hand_file[0])
 
@@ -459,19 +434,14 @@ def proc_work(instance_lst, proc_num, infos, args):
             #for collision detection
             check_obj_path_list = []
             check_obj_path_list.append(pjoin(infos.obj_path, args.category, f'{instance}_{1-hand_part}.obj'))
+          #  check_obj_path_list.append(pjoin(infos.obj_path, args.category, f'{instance}_{hand_part}.obj'))
             check_obj_path_list.append(hand_path)
             check_new_name_list = []
             check_new_name_list.append(f'{instance}_{1 - hand_part}')
+           # check_new_name_list.append(f'{instance}_{hand_part}')
             check_new_name_list.append(f'{instance}_{hand_file[:-4]}')
-            blender_data = env.sample_and_render(new_urdf_save_path, grasp_path, check_obj_path_list,
-                                                 check_new_name_list, hand_part, instance, int(hand_file[2:-4]))
-            blender_lst.extend(blender_data)
-            break
-        break
-    mode = 'single_frame' if not args.seq else 'seq'
-    blender_anno_folder = pjoin(infos.blender_anno_path, args.category, mode)
-    os.makedirs(blender_anno_folder, exist_ok=True)
-    np.save(pjoin(blender_anno_folder, f'blender_anno_{proc_num}'), blender_lst)
+            env = BaseEnv(infos.render_path, args.sample_num, args.category, args.seq)
+            env.sample_and_render(new_urdf_save_path, grasp_path, check_obj_path_list, check_new_name_list, hand_part, instance, int(hand_file[2:-4]))
 
 
 if __name__ == "__main__":
@@ -483,13 +453,12 @@ if __name__ == "__main__":
     parser.add_argument('--seq', action='store_true')
     parser.add_argument('-n', '--num_workers', type=int, default=8)
     args = parser.parse_args()
-
     infos = global_info()
 
     if args.category == 'laptop':
         total_part = 2
 
-    obj_folder = pjoin(infos.partnet_path, args.category)  #.urdf
+    obj_folder = pjoin(infos.partnet_path, args.category)                       #.urdf
     instance_lst = os.listdir(obj_folder)
 
     if args.seq:
@@ -499,10 +468,9 @@ if __name__ == "__main__":
         test_ins_list = list(set([i.split('_')[0] for i in test_split]))
         instance_lst = [i for i in instance_lst if i in test_ins_list]
 
-    proc_work(instance_lst, 0, infos, args)
-    exit(1)
+    #TODO: multi processes!
     per_worker_obj_list = []
-    length = len(instance_lst) // args.num_workers
+    length = len(instance_lst) // args.num_workers + 1
     start = 0
     end = length
     for i in range(args.num_workers):
@@ -512,7 +480,6 @@ if __name__ == "__main__":
             per_worker_obj_list.append(instance_lst[start: end])
         start += length
         end += length
-
     process_lst = []
     for proc_num in range(args.num_workers):
         p = Process(target=proc_work,
