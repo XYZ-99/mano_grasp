@@ -28,11 +28,11 @@ def construct_pose_and_dofs():
     #          d2r(25), d2r(85), 0,
     #          d2r(10), d2r(75), 0,
     #          d2r(60), 0, 0, 0 ]
-    dofs = [ d2r(-5), 0, 0,
-             0, 0, 0,
-             d2r(5), 0, 0,
-             d2r(5), 0, 0,
-             d2r(60), 0, 0, 0 ]
+    dofs = [ 0, d2r(15), d2r(60),
+             0, d2r(15), d2r(60),
+             d2r(5), d2r(15), d2r(60),
+             d2r(5), d2r(15), d2r(60),
+             d2r(15), d2r(15), d2r(15), d2r(15) ]
     return np.array(pose), np.array(dofs)
 
 def parse_args():
@@ -70,7 +70,11 @@ def main():
                                                 th_trans=torch.FloatTensor(mano_trans))
     hand_vertices = hand_vertices.cpu().data.numpy()[0] / scale
     hand_faces = mano_layer_right.th_faces.cpu().data.numpy()
-    
+    saved_data = {}
+    saved_data["hand_vertices"] = hand_vertices
+    saved_data["hand_faces"] = hand_faces
+    save_dir = os.path.dirname(save_path)
+    np.savez(pjoin(save_dir, "vf_1.npz"), **saved_data)
     """ Save """
     mesh = trimesh.Trimesh(vertices=hand_vertices,
                            faces=hand_faces)
